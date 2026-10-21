@@ -47,6 +47,33 @@ function signature and keeps the same policy, audit trail and review UI.
   Claude with tool access to the CRM (read enquiry, draft itinerary, create
   task) → same guardrails.
 
+## Call transcription & analysis (`call-analysis.ts`)
+
+Every call carries a transcript (voice-agent calls natively; consultant calls
+via "Transcribe recording"), an English rendering for Hindi/Hinglish, and an
+on-demand analysis: a 0–100 quality score, tags (price-discussion,
+visa-question, pax-change, high-intent…), and coaching on opening,
+explanation, professionalism and next steps. The recording player and the
+transcript are synced — click a line to seek. Production: Indic ASR
+(Whisper / IndicConformer) → translation → Claude scoring, as in the wellness
+CRM's call pipeline.
+
+## Ask the data (`ask.ts`)
+
+A question framework over the data model: questions are parsed into entity /
+metric / group-by / filters / date range, matched against a registry of
+handlers, and answered with text, a table, a chart and the equivalent
+pseudo-SQL for transparency. Names and refs resolve to an entity narrative.
+Production: the same parser as a tool-use front door for Claude, or a
+guarded text-to-SQL path over read-only replicas.
+
+## AI Audit
+
+Every inference writes an `AgentEvent`; the AI Audit page shows the decision
+log with model, latency, tokens, system prompt, user prompt and output, plus
+the review actions, and groups inbound traveller messages into question
+topics so the team can see which questions lack a rule or a template.
+
 ## Scoring agent (`scoring.ts`)
 
 0–100 conversion likelihood with explainable deltas (concrete dates +15,

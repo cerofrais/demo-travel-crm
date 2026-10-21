@@ -33,6 +33,15 @@ Manager (Priya), Trip Consultant (Rohan), Operations (Meera), Finance
 
 ## Changelog
 
+**2026-10-22 — v0.3**
+- AI Audit page: decision log with prompts/outputs per inference, inbound
+  question topics with template suggestions, policy & models.
+- Ask the data: chat framework for simple questions over the CRM data with
+  tables, charts, pseudo-SQL and saved history.
+- Calls: recording player synced with the transcript, transcribe-on-demand
+  for consultant calls, English translation for Hinglish, AI call analysis
+  with quality score and coaching. Seed v3.
+
 **2026-10-22 — v0.2**
 - Inbox: channels are selectable chips above the thread list (multi-select,
   with counts) instead of a dropdown.

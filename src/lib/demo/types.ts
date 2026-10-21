@@ -414,6 +414,14 @@ export interface TranscriptLine {
   t: number; // seconds offset
 }
 
+export interface CallAnalysis {
+  score: number; // 0-100 call quality
+  summary: string;
+  tags: string[];
+  coaching: { opening: string; explanation: string; professionalism: string; nextSteps: string };
+  analysedAt: string;
+}
+
 export interface Call {
   id: string;
   enquiryId?: string;
@@ -427,6 +435,10 @@ export interface Call {
   status: CallStatus;
   language: Language;
   transcript: TranscriptLine[];
+  /** English rendering of a Hindi / Hinglish transcript, line for line. */
+  translation?: TranscriptLine[];
+  transcribedAt?: string;
+  analysis?: CallAnalysis;
   summary?: string;
   extracted?: Partial<{
     destination: string;
@@ -525,6 +537,13 @@ export interface AgentEvent {
   reviewedBy?: string;
   reviewedAt?: string;
   payload?: Record<string, unknown>;
+  /** Audit trail of the inference behind this event (AI Audit page). */
+  model?: string;
+  latencyMs?: number;
+  tokens?: { in: number; out: number };
+  prompt?: { system: string; user: string };
+  output?: string;
+  outcome?: "success" | "failed" | "skipped";
 }
 
 export interface Review {
@@ -563,6 +582,27 @@ export interface Activity {
   tripId?: string;
   travellerId?: string;
   text: string;
+}
+
+/** One question asked of the data on the Ask page, with its answer. */
+export interface AskEntry {
+  id: string;
+  at: string;
+  by: string; // user sub
+  question: string;
+  answer: {
+    mode: "table" | "narrative" | "choose" | "unknown";
+    text: string;
+    columns?: string[];
+    rows?: Record<string, string | number | null>[];
+    chart?: { label: string; value: number }[];
+    /** The equivalent query over the data model, shown for transparency. */
+    query: string;
+    entityId?: string;
+    entityKind?: "enquiry" | "traveller" | "trip";
+    durationMs: number;
+  };
+  saved: boolean;
 }
 
 /** A shareable link in the library (review page, visa checklist, brochure…). */
@@ -670,6 +710,7 @@ export interface DemoData {
   referrals: Referral[];
   activities: Activity[];
   resourceLinks: ResourceLink[];
+  askHistory: AskEntry[];
   tags: Tag[];
   settings: Settings;
 }

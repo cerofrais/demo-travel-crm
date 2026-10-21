@@ -41,7 +41,9 @@ export type Permission =
   | "users.manage"
   | "settings.manage"
   | "settings.view"
-  | "activity.view";
+  | "activity.view"
+  | "ai.audit"
+  | "data.ask";
 
 const ALL: Permission[] = [
   "dashboard.view",
@@ -72,6 +74,8 @@ const ALL: Permission[] = [
   "settings.manage",
   "settings.view",
   "activity.view",
+  "ai.audit",
+  "data.ask",
 ];
 
 export const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
@@ -96,6 +100,7 @@ export const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
     "tasks.view",
     "tasks.manage",
     "reports.view",
+    "data.ask",
   ],
   OPS: [
     "dashboard.view",
@@ -114,6 +119,7 @@ export const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
     "tasks.manage",
     "reports.view",
     "activity.view",
+    "data.ask",
   ],
   FINANCE: [
     "dashboard.view",
@@ -128,6 +134,7 @@ export const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
     "reports.view",
     "reports.all",
     "activity.view",
+    "data.ask",
   ],
   VIEWER: [
     "dashboard.view",
@@ -141,6 +148,8 @@ export const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
     "tasks.view",
     "reports.view",
     "activity.view",
+    "ai.audit",
+    "data.ask",
   ],
 };
 
@@ -172,6 +181,8 @@ export const NAV: NavDef[] = [
   { href: "/suppliers", label: "Suppliers", icon: "Building2", perm: "suppliers.view", section: "operations" },
   { href: "/agents", label: "AI Agents", icon: "Bot", perm: "agents.view", section: "ai" },
   { href: "/calls", label: "Calls", icon: "Phone", perm: "agents.view", section: "ai" },
+  { href: "/ask", label: "Ask the data", icon: "MessageSquareText", perm: "data.ask", section: "ai" },
+  { href: "/ai-audit", label: "AI Audit", icon: "ShieldCheck", perm: "ai.audit", section: "ai" },
   { href: "/campaigns", label: "Campaigns", icon: "Megaphone", perm: "campaigns.manage", section: "growth" },
   { href: "/templates", label: "Templates", icon: "LayoutTemplate", perm: "templates.manage", section: "growth" },
   { href: "/reviews", label: "Reviews & Referrals", icon: "Star", perm: "travellers.view", section: "growth" },

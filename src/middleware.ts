@@ -26,6 +26,8 @@ export const config = {
     "/suppliers/:path*",
     "/agents/:path*",
     "/calls/:path*",
+    "/ask/:path*",
+    "/ai-audit/:path*",
     "/campaigns/:path*",
     "/templates/:path*",
     "/reviews/:path*",

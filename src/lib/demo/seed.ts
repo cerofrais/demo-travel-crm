@@ -25,6 +25,7 @@ import type {
 import { AUTO_REPLY_RULES, DEMO_USERS, DESTINATIONS, PACKAGES, RESOURCE_LINKS, SETTINGS, SUPPLIERS, TAGS, TEMPLATES } from "./seed-static";
 import { generateItinerary } from "@/lib/ai/itinerary";
 import { scoreEnquiry } from "@/lib/ai/scoring";
+import { analyseCall, transcribeCall, translateTranscript } from "@/lib/ai/call-analysis";
 
 export { DEMO_USERS } from "./seed-static";
 
@@ -816,6 +817,27 @@ export function generateSeed(): DemoData {
     }
   }
 
+  // ----- transcripts, translations and AI analysis for calls -----
+  for (const c of calls) {
+    const e = c.enquiryId ? enquiries.find((x) => x.id === c.enquiryId) : undefined;
+    const trv = c.travellerId ? travellers.find((x) => x.id === c.travellerId) : undefined;
+    const consultantName = c.kind === "human" ? userName(c.handledBy) : "Aanya";
+    const ctx = { enquiry: e, traveller: trv, consultantName };
+    if (c.kind === "human" && c.transcript.length === 0 && c.status === "completed" && chance(0.75)) {
+      const t = transcribeCall(c, ctx);
+      c.transcript = t.transcript;
+      c.translation = t.translation;
+      c.transcribedAt = iso(minutesAfter(c.startedAt, 3));
+    }
+    if (c.kind === "voice_agent" && c.language === "hinglish" && !c.translation) {
+      c.translation = translateTranscript(c.transcript);
+    }
+    if (c.transcript.length > 0 && chance(0.6)) {
+      c.analysis = analyseCall(c, ctx, minutesAfter(c.startedAt, 5));
+      c.qualityScore = c.analysis.score;
+    }
+  }
+
   // Sort everything newest-first where it matters.
   messages.sort((a, b) => a.at.localeCompare(b.at));
   activities.sort((a, b) => b.at.localeCompare(a.at));
@@ -846,6 +868,7 @@ export function generateSeed(): DemoData {
     referrals,
     activities,
     resourceLinks: RESOURCE_LINKS,
+    askHistory: [],
     tags: TAGS,
     settings: SETTINGS,
   };

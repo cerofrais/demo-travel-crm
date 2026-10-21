@@ -22,6 +22,8 @@ import {
   UserCog,
   History,
   Settings,
+  MessageSquareText,
+  ShieldCheck,
   LogOut,
   type LucideIcon,
 } from "lucide-react";
@@ -46,6 +48,8 @@ export const NAV_ICONS: Record<string, LucideIcon> = {
   UserCog,
   History,
   Settings,
+  MessageSquareText,
+  ShieldCheck,
 };
 
 export interface NavItem {

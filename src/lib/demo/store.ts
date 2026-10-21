@@ -6,7 +6,8 @@ import { generateSeed } from "./seed";
 const STORAGE_KEY = "wishtrip_crm_demo_v1";
 // Bump to force a reseed when the seed shape changes.
 // v2 — linked enquiries, stage visibility, resource links, staff activity log.
-export const SEED_VERSION = 2;
+// v3 — call transcripts/analysis, AI audit fields, ask-the-data history.
+export const SEED_VERSION = 3;
 
 let cache: DemoData | null = null;
 const listeners = new Set<() => void>();

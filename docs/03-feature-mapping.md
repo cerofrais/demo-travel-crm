@@ -27,8 +27,9 @@ users/permissions. This table says what each of its features became.
 | Referrals (codes, QR) | Reviews & Referrals — post-trip loop + codes | |
 | Tasks (follow-up, doctor review, lost approval, payment chase) | Tasks (follow-up, callback, payment reminder, document, visa, pre-departure, mid-trip, post-trip, review, approval) | |
 | Reports (performance, source × stage, marketing CSV, weekly) | Reports (funnel, sources, destinations, consultants + AI impact, revenue) | |
-| AI audit log | AI Agents → Activity feed + Review queue | |
-| Ask the Database | Not ported (out of scope for the demo) | Candidate for phase 2 |
+| AI audit log (decision log with prompts/outputs, inbound questions) | AI Audit page — decision log with system/user prompt and output per inference, inbound question topics, policy & models | |
+| Ask the Database | Ask the data — chat framework with a handler registry, pseudo-SQL transparency, entity lookup, saved history | |
+| Call recordings, transcripts (Indic ASR), translation, AI call scoring + coaching | Calls — synced recording player, transcribe-on-demand, English translation toggle, AI analysis with coaching | |
 | Users, permissions, activity log, settings | Team, Activity, Settings | Roles: Admin, Manager, Trip Consultant, Operations, Finance, Viewer |
 | Users → Activity monitor (actions per 10 min, active/inactive timeline) | Team → Activity monitor | Ported from the production tre-crm-tool repo; computed from the activity log in the browser |
 | Linked leads (same person, several numbers) | Linked enquiries — "travel party" | Families/friends messaging separately about one trip |

@@ -1,18 +1,18 @@
 "use client";
 
 import * as React from "react";
-import { Bot, ChevronDown, ChevronUp, Pause, Phone, PhoneIncoming, PhoneOutgoing, Play, PhoneCall, Plus } from "lucide-react";
+import { Bot, ChevronDown, ChevronUp, Phone, PhoneIncoming, PhoneOutgoing, PhoneCall, Plus } from "lucide-react";
 import { Badge, Button, Dialog, Input, ScoreBadge, Select, Textarea } from "@/components/ui";
-import { EmptyState, Field, KV, useToast } from "@/components/shared";
+import { EmptyState, Field, useToast } from "@/components/shared";
 import { useDb } from "@/lib/demo/use-db";
 import { mutateDb } from "@/lib/demo/store";
 import { useCurrentUser } from "@/lib/demo/session-client";
 import { callsForEnquiry, enquiryById, travellerById } from "@/lib/demo/queries";
 import { can } from "@/lib/rbac";
-import { TRIP_TYPE_LABEL } from "@/lib/pipeline";
 import type { Call, CallOutcome } from "@/lib/demo/types";
-import { cn, formatDateTime, formatINR, paxLabel } from "@/lib/utils";
+import { cn, formatDateTime } from "@/lib/utils";
 import { CALL_STATUS_CLASS, OUTCOME_CLASS, OUTCOME_LABEL, SENTIMENT_CLASS, formatDuration, handledByLabel, saveHumanCall, saveVoiceCall } from "./call-utils";
+import { CallDetail } from "./call-detail";
 
 /** Calls for one enquiry + "Call with Aanya" and "Log a call". */
 export function CallsPanel({ enquiryId }: { enquiryId: string }) {
@@ -114,102 +114,7 @@ function CallRow({ call, expanded, onToggle }: { call: Call; expanded: boolean; 
   );
 }
 
-/** Expanded call detail: summary, extracted fields, transcript, fake recording player. Reused by the Calls page sheet. */
-export function CallDetail({ call }: { call: Call }) {
-  const db = useDb();
-  const x = call.extracted;
-  const agentName = call.kind === "voice_agent" ? db.settings.agents.voice.name : handledByLabel(db, call).split(" ")[0];
-  const callerName = call.travellerId ? db.travellers.find((t) => t.id === call.travellerId)?.fullName.split(" ")[0] ?? "Caller" : "Caller";
-  return (
-    <div className="space-y-4">
-      {call.recordingAvailable && <RecordingPlayer durationSec={call.durationSec} />}
-      {call.summary && (
-        <div>
-          <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Summary</div>
-          <p className="text-sm">{call.summary}</p>
-        </div>
-      )}
-      {x && Object.keys(x).length > 0 && (
-        <div>
-          <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Extracted fields</div>
-          <div className="grid grid-cols-2 gap-3 rounded-lg bg-sand-50 p-3 sm:grid-cols-3">
-            {x.destination && <KV label="Destination" value={x.destination} />}
-            {x.travelMonth && <KV label="Month" value={new Date(x.travelMonth + "-01").toLocaleDateString("en-IN", { month: "long", year: "numeric" })} />}
-            {x.nights != null && <KV label="Nights" value={x.nights} />}
-            {x.pax && <KV label="Travellers" value={paxLabel(x.pax)} />}
-            {x.budgetINR != null && <KV label="Budget" value={formatINR(x.budgetINR)} />}
-            {x.tripType && <KV label="Trip type" value={TRIP_TYPE_LABEL[x.tripType]} />}
-            {x.departureCity && <KV label="Departure" value={x.departureCity} />}
-          </div>
-        </div>
-      )}
-      {call.transcript.length > 0 ? (
-        <div>
-          <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Transcript · {call.language}</div>
-          <ol className="space-y-1.5">
-            {call.transcript.map((l, i) => (
-              <li key={i} className="flex gap-2 text-sm">
-                <span className="w-10 shrink-0 pt-0.5 text-[11px] tabular-nums text-muted-foreground">{formatDuration(l.t)}</span>
-                <span className={cn("w-16 shrink-0 truncate text-xs font-semibold", l.speaker === "agent" ? "text-brand-700" : "text-clay-600")}>{l.speaker === "agent" ? agentName : callerName}</span>
-                <span className={cn("flex-1 rounded-md px-2 py-1", l.speaker === "agent" ? "bg-brand-50" : "bg-sand-100")}>{l.text}</span>
-              </li>
-            ))}
-          </ol>
-        </div>
-      ) : (
-        <p className="text-xs text-muted-foreground">No transcript — consultant call logged manually.</p>
-      )}
-    </div>
-  );
-}
-
-/** Fake recording player: animates progress over durationSec, no audio. */
-export function RecordingPlayer({ durationSec }: { durationSec: number }) {
-  const [playing, setPlaying] = React.useState(false);
-  const [pos, setPos] = React.useState(0);
-  React.useEffect(() => {
-    if (!playing) return;
-    const id = window.setInterval(() => {
-      setPos((p) => {
-        if (p + 1 >= durationSec) {
-          window.clearInterval(id);
-          setPlaying(false);
-          return durationSec;
-        }
-        return p + 1;
-      });
-    }, 1000);
-    return () => window.clearInterval(id);
-  }, [playing, durationSec]);
-  const pct = durationSec > 0 ? (pos / durationSec) * 100 : 0;
-  return (
-    <div className="flex items-center gap-3 rounded-lg border border-border bg-sand-50 px-3 py-2">
-      <button
-        type="button"
-        onClick={() => {
-          if (pos >= durationSec) setPos(0);
-          setPlaying((p) => !p);
-        }}
-        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground"
-        aria-label={playing ? "Pause recording" : "Play recording"}
-      >
-        {playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 pl-0.5" />}
-      </button>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-end gap-px" style={{ height: 22 }} role="progressbar" aria-valuenow={Math.round(pct)}>
-          {Array.from({ length: 48 }).map((_, i) => {
-            const h = 6 + ((i * 7919) % 15);
-            const on = (i / 48) * 100 <= pct;
-            return <span key={i} className={cn("flex-1 rounded-sm", on ? "bg-brand-500" : "bg-brand-200/70")} style={{ height: h }} />;
-          })}
-        </div>
-      </div>
-      <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
-        {formatDuration(pos)} / {formatDuration(durationSec)}
-      </span>
-    </div>
-  );
-}
+export { CallDetail, RecordingPlayer } from "./call-detail";
 
 const HUMAN_OUTCOMES: CallOutcome[] = ["qualified", "callback", "info", "booked", "not_interested", "no_answer", "voicemail"];
 
