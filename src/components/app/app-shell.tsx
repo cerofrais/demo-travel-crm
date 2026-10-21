@@ -166,7 +166,12 @@ function PageSkeleton() {
 function DemoFooter() {
   return (
     <div className="no-print flex shrink-0 items-center justify-between gap-2 border-t border-border bg-card px-4 py-1.5 text-[11px] text-muted-foreground">
-      <span className="truncate">Interactive demo · all data is generated and lives only in this browser</span>
+      <span className="truncate">
+        Interactive demo · all data is generated and lives only in this browser · Built by{" "}
+        <a href="https://ascent-i-tech.com/#contact" target="_blank" rel="noopener noreferrer" className="font-semibold text-brand-600 underline-offset-2 hover:underline">
+          Ascent-Intelligent-Technologies
+        </a>
+      </span>
       <button
         onClick={() => {
           if (confirm("Reset the demo data to a fresh seed? Your changes in this browser will be lost.")) resetDemoData();

@@ -190,6 +190,9 @@ export interface Enquiry {
   whatsappWindowExpiresAt?: string;
   firstResponseMinutes?: number;
   tripId?: string;
+  /** Enquiries that belong to the same travel party (family / friends each
+   *  messaging separately) share a link group. */
+  linkGroupId?: string;
   createdAt: string;
   updatedAt: string;
   lastActivityAt: string;
@@ -552,12 +555,26 @@ export interface Activity {
   id: string;
   at: string;
   actor: string; // display name
+  /** User sub when actorKind is "user" — drives the team activity monitor. */
+  actorSub?: string;
   actorKind: "user" | "ai" | "system" | "traveller";
   type: string;
   enquiryId?: string;
   tripId?: string;
   travellerId?: string;
   text: string;
+}
+
+/** A shareable link in the library (review page, visa checklist, brochure…). */
+export interface ResourceLink {
+  id: string;
+  name: string;
+  url: string;
+  description?: string;
+  folder: string;
+  usageCount: number;
+  archived: boolean;
+  createdAt: string;
 }
 
 export interface Tag {
@@ -617,6 +634,9 @@ export interface Settings {
     cancellationSlabs: { minDaysBefore: number; feePct: number }[];
   };
   sla: { firstResponseMin: number; itineraryHours: number; followUpCadenceDays: number[] };
+  /** stage → roles allowed to see the enquiries in that column. A stage
+   *  missing from the map is visible to everyone; ADMIN always sees all. */
+  stageVisibility: Partial<Record<EnquiryStage, AppRole[]>>;
   agents: {
     voice: VoiceAgentConfig;
     autoReply: AutoReplyAgentConfig;
@@ -649,6 +669,7 @@ export interface DemoData {
   reviews: Review[];
   referrals: Referral[];
   activities: Activity[];
+  resourceLinks: ResourceLink[];
   tags: Tag[];
   settings: Settings;
 }

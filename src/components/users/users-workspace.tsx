@@ -9,8 +9,9 @@ import { can } from "@/lib/rbac";
 import { MembersTab } from "./members-tab";
 import { RolesTab } from "./roles-tab";
 import { AssignmentTab } from "./assignment-tab";
+import { ActivityMonitor } from "./activity-monitor";
 
-type Tab = "members" | "roles" | "assignment";
+type Tab = "members" | "roles" | "assignment" | "activity";
 
 export function UsersWorkspace() {
   const db = useDb();
@@ -29,6 +30,7 @@ export function UsersWorkspace() {
             { key: "members", label: "Members" },
             { key: "roles", label: "Roles & permissions" },
             { key: "assignment", label: "Lead assignment" },
+            { key: "activity", label: "Activity monitor" },
           ]}
           active={tab}
           onChange={(k) => setTab(k as Tab)}
@@ -36,6 +38,7 @@ export function UsersWorkspace() {
         {tab === "members" && <MembersTab db={db} me={me} canManage={canManage} />}
         {tab === "roles" && <RolesTab />}
         {tab === "assignment" && <AssignmentTab db={db} me={me} canManage={canManage || canAssign} />}
+        {tab === "activity" && <ActivityMonitor />}
       </div>
     </>
   );

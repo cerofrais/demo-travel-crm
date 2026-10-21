@@ -2,12 +2,13 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Activity, Bot, CheckSquare, FileText, History, Map, MessageCircle, Phone, Plane, Repeat, User as UserIcon, X, XCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Activity, Bot, CheckSquare, FileText, History, Link2, Map, MessageCircle, Phone, Plane, Repeat, User as UserIcon, Users2, X, XCircle } from "lucide-react";
 import type { EnquiryStage } from "@/lib/demo/types";
 import { useDb } from "@/lib/demo/use-db";
 import { mutateDb } from "@/lib/demo/store";
 import { useCurrentUser } from "@/lib/demo/session-client";
-import { enquiryById, travellerById } from "@/lib/demo/queries";
+import { enquiryById, linkedEnquiries, travellerById } from "@/lib/demo/queries";
 import { can } from "@/lib/rbac";
 import { STAGES, STAGE_MAP } from "@/lib/pipeline";
 import { Button, ScoreBadge, ScrollableTabs, Select, Sheet } from "@/components/ui";
@@ -24,6 +25,7 @@ import { ActivityTab } from "./drawer-activity";
 import { AssistPanel } from "./assist-panel";
 import { LostReasonDialog } from "./lost-reason-dialog";
 import { markLost, moveStage } from "./booking-actions";
+import { LinkedEnquiriesDialog } from "./linked-enquiries-dialog";
 
 type TabKey = "details" | "itinerary" | "conversation" | "assist" | "calls" | "trip" | "documents" | "tasks" | "activity";
 
@@ -46,17 +48,26 @@ const TABS: { key: TabKey; label: string; icon: React.ReactNode }[] = [
 export function EnquiryDrawer({ enquiryId, onClose }: { enquiryId: string | null; onClose: () => void }) {
   const db = useDb();
   const me = useCurrentUser();
+  const router = useRouter();
   const { toast, node: toastNode } = useToast();
   const [tab, setTab] = React.useState<TabKey>("details");
   const [lostOpen, setLostOpen] = React.useState(false);
+  const [linkOpen, setLinkOpen] = React.useState(false);
 
   React.useEffect(() => {
     setTab("details");
     setLostOpen(false);
+    setLinkOpen(false);
   }, [enquiryId]);
 
   const e = enquiryById(db, enquiryId);
   const traveller = travellerById(db, e?.travellerId);
+  const linked = e ? linkedEnquiries(db, e) : [];
+  /** The drawer is driven by `?enquiry=<id>`; switching enquiries is a URL change the workspace picks up. */
+  const openOther = (id: string) => {
+    setLinkOpen(false);
+    router.replace(`/enquiries?enquiry=${id}`, { scroll: false });
+  };
   const dest = e ? db.destinations.find((d) => d.id === e.destinationId) : undefined;
   const actor = React.useMemo(() => ({ sub: me.sub, name: me.name || "You" }), [me.sub, me.name]);
   const canEdit = can(me.role, "enquiries.work") || can(me.role, "enquiries.manage");
@@ -121,6 +132,7 @@ export function EnquiryDrawer({ enquiryId, onClose }: { enquiryId: string | null
                 <Link href={`/inbox?thread=${traveller.id}:whatsapp`}><Button size="sm" variant="secondary"><MessageCircle className="h-4 w-4 text-green-600" />WhatsApp</Button></Link>
               )}
               <Button size="sm" variant="outline" onClick={() => setTab("calls")}><Phone className="h-4 w-4" />Call</Button>
+              <Button size="sm" variant="outline" onClick={() => setLinkOpen(true)} title="Travel party — other enquiries for the same trip"><Link2 className="h-4 w-4" />{linked.length > 0 ? `Linked (${linked.length})` : "Link"}</Button>
               {canEdit && e.stage !== "lost" && !["completed", "non_lead"].includes(e.stage) && (
                 <Button size="sm" variant="ghost" className="text-rose-600 hover:bg-rose-50" onClick={() => setLostOpen(true)}><XCircle className="h-4 w-4" />Mark lost</Button>
               )}
@@ -131,6 +143,20 @@ export function EnquiryDrawer({ enquiryId, onClose }: { enquiryId: string | null
                 </Select>
               </div>
             </div>
+            {linked.length > 0 && (
+              <div className="-mt-1 flex flex-wrap items-center gap-1.5 pb-2.5 text-xs text-muted-foreground">
+                <Users2 className="h-3.5 w-3.5 text-brand-600" />
+                <span className="font-medium">Travel party of {linked.length + 1}:</span>
+                {linked.map((l) => {
+                  const t = travellerById(db, l.travellerId);
+                  return (
+                    <button key={l.id} type="button" onClick={() => openOther(l.id)} title={`${t?.fullName ?? "Traveller"} · ${l.ref}`} className="rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-medium text-brand-800 hover:bg-brand-100">
+                      {t?.fullName.split(" ")[0] ?? l.ref}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
             {e.stage === "lost" && e.lostReason && <p className="-mt-1 pb-2 text-xs text-rose-700">Lost: {e.lostReason}</p>}
           </header>
 
@@ -164,6 +190,7 @@ export function EnquiryDrawer({ enquiryId, onClose }: { enquiryId: string | null
           toast("Marked as lost");
         }}
       />
+      {linkOpen && e && <LinkedEnquiriesDialog enquiryId={e.id} onClose={() => setLinkOpen(false)} onOpenEnquiry={openOther} />}
       {toastNode}
     </Sheet>
   );

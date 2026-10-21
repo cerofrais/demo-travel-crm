@@ -13,6 +13,7 @@ import { CHANNEL_LABEL } from "@/lib/pipeline";
 import type { Channel, Message } from "@/lib/demo/types";
 import { cn, formatDateTime, formatTime } from "@/lib/utils";
 import { CANNED_REPLIES, THREAD_CHANNELS, appendInbound, approveDraft, discardDraft, fillTemplate, runAutoReply, senderLabel } from "./conversation-utils";
+import { LinkPicker } from "./link-picker";
 
 export interface ConversationPanelProps {
   travellerId: string;
@@ -316,6 +317,16 @@ function Composer({ travellerId, enquiryId, channel, showChannelSelect, onChanne
           <option value="">Insert template…</option>
           {templates.map((t) => <option key={t.id} value={t.id}>{t.folder} · {t.name}</option>)}
         </Select>
+        <LinkPicker
+          disabled={busy}
+          onSelect={(snippet, link) => {
+            setText((t) => (t.trim() ? `${t.replace(/\s+$/, "")}\n${snippet}` : snippet));
+            mutateDb((d) => {
+              const l = d.resourceLinks.find((x) => x.id === link.id);
+              if (l) l.usageCount += 1;
+            });
+          }}
+        />
         <div ref={menuRef} className="relative">
           <Button type="button" variant="outline" size="sm" className="h-9" onClick={() => setMenuOpen((o) => !o)} disabled={busy}>
             <Bot className="h-3.5 w-3.5 text-brand-600" /> Simulate traveller reply <ChevronDown className="h-3.5 w-3.5" />

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Bot, CalendarDays, CheckSquare, MessageCircle, Repeat, Users } from "lucide-react";
+import { Bot, CalendarDays, CheckSquare, Link2, MessageCircle, Repeat, Users } from "lucide-react";
 import type { DemoData, Enquiry } from "@/lib/demo/types";
 import { destinationById, userBySub } from "@/lib/demo/queries";
 import { Avatar, ScoreBadge } from "@/components/ui";
@@ -54,6 +54,7 @@ export const EnquiryCard = React.memo(function EnquiryCard({ enquiry: e, db, onO
   const overdue = openTasks.some((t) => new Date(t.dueAt).getTime() < Date.now());
   const wa = whatsappWindowLabel(e.whatsappWindowExpiresAt);
   const extraTags = Math.max(0, e.tags.length - 3);
+  const partySize = e.linkGroupId ? db.enquiries.filter((x) => x.linkGroupId === e.linkGroupId).length : 0;
 
   return (
     <div
@@ -117,6 +118,9 @@ export const EnquiryCard = React.memo(function EnquiryCard({ enquiry: e, db, onO
         )}
         {traveller && traveller.tripsCount > 0 && (
           <span className="inline-flex items-center gap-0.5 rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700" title={`${traveller.tripsCount} previous trip(s)`}><Repeat className="h-3 w-3" />Repeat</span>
+        )}
+        {partySize > 1 && (
+          <span className="inline-flex items-center gap-0.5 rounded bg-brand-50 px-1.5 py-0.5 text-[10px] font-semibold text-brand-700" title="Linked enquiries travelling together"><Link2 className="h-3 w-3" />Party of {partySize}</span>
         )}
       </div>
 

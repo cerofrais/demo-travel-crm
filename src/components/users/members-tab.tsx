@@ -7,7 +7,7 @@ import { Field, useToast } from "@/components/shared";
 import { ROLE_LABEL, type AppRole } from "@/lib/rbac";
 import { mutateDb, newId, nowIso } from "@/lib/demo/store";
 import { logActivity } from "@/lib/demo/queries";
-import { cn, copyToClipboard } from "@/lib/utils";
+import { cn, copyToClipboard, relativeTime } from "@/lib/utils";
 import type { DemoData, Language, User } from "@/lib/demo/types";
 import { LANGUAGE_LABEL } from "@/components/templates/template-editor";
 
@@ -126,6 +126,14 @@ export function MembersTab({ db, me, canManage }: { db: DemoData; me: { sub: str
   };
 
   const sorted = [...db.users].sort((a, b) => Number(b.active) - Number(a.active) || a.name.localeCompare(b.name));
+  // Most recent thing each member did, from the activity log (user actions
+  // only). Not memoised: the store mutates arrays in place.
+  const lastActive = new Map<string, string>();
+  for (const a of db.activities) {
+    if (a.actorKind !== "user" || !a.actorSub) continue;
+    const prev = lastActive.get(a.actorSub);
+    if (!prev || a.at > prev) lastActive.set(a.actorSub, a.at);
+  }
 
   return (
     <div className="space-y-4">
@@ -138,7 +146,7 @@ export function MembersTab({ db, me, canManage }: { db: DemoData; me: { sub: str
       )}
       <Card className="overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[900px] text-sm">
+          <table className="w-full min-w-[1000px] text-sm">
             <thead className="bg-secondary/60 text-[11px] uppercase tracking-wide text-muted-foreground">
               <tr>
                 <th className="px-4 py-2 text-left font-semibold">Member</th>
@@ -147,6 +155,7 @@ export function MembersTab({ db, me, canManage }: { db: DemoData; me: { sub: str
                 <th className="px-3 py-2 text-left font-semibold">Specialities</th>
                 <th className="px-3 py-2 text-left font-semibold">Languages</th>
                 <th className="px-3 py-2 text-left font-semibold">Status</th>
+                <th className="px-3 py-2 text-left font-semibold">Last active</th>
                 {canManage && <th className="px-3 py-2 text-right font-semibold">Actions</th>}
               </tr>
             </thead>
@@ -181,6 +190,7 @@ export function MembersTab({ db, me, canManage }: { db: DemoData; me: { sub: str
                   </td>
                   <td className="px-3 py-3 text-xs">{u.languages.map((l) => LANGUAGE_LABEL[l]).join(", ")}</td>
                   <td className="px-3 py-3 text-xs">{u.active ? <span className="text-emerald-700">Active</span> : <span className="text-muted-foreground">Deactivated</span>}</td>
+                  <td className="px-3 py-3 text-xs text-muted-foreground" title={lastActive.get(u.sub)}>{lastActive.has(u.sub) ? relativeTime(lastActive.get(u.sub)!) : "—"}</td>
                   {canManage && (
                     <td className="px-3 py-3">
                       <div className="flex justify-end gap-1">

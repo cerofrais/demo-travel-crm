@@ -3,15 +3,15 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Bot, Clock, ExternalLink, FileWarning, MessageCircle, Search, Sparkles, User } from "lucide-react";
-import { Avatar, Input, Select } from "@/components/ui";
+import { ArrowLeft, Bot, Check, Clock, ExternalLink, FileWarning, MessageCircle, Search, Sparkles, User } from "lucide-react";
+import { Avatar, Input } from "@/components/ui";
 import { ChannelBadge, EmptyState, StageBadge } from "@/components/shared";
 import { PageHeader } from "@/components/app/page-header";
 import { ConversationPanel } from "@/components/conversation/conversation-panel";
 import { useDb } from "@/lib/demo/use-db";
 import { useCurrentUser } from "@/lib/demo/session-client";
 import { enquiryById, threads, travellerById, type Thread } from "@/lib/demo/queries";
-import { CHANNEL_LABEL } from "@/lib/pipeline";
+import { CHANNEL_CLASS, CHANNEL_LABEL } from "@/lib/pipeline";
 import type { Channel } from "@/lib/demo/types";
 import { cn, relativeTime } from "@/lib/utils";
 
@@ -33,14 +33,16 @@ export function InboxWorkspace() {
   const selectedKey = params.get("thread");
 
   const [filter, setFilter] = React.useState<Filter>("all");
-  const [channel, setChannel] = React.useState<"" | Channel>("");
+  // Channel chips on top of the list — multi-select, empty means every channel.
+  const [channels, setChannels] = React.useState<Channel[]>([]);
+  const toggleChannel = (c: Channel) => setChannels((cur) => (cur.includes(c) ? cur.filter((x) => x !== c) : [...cur, c]));
   const [q, setQ] = React.useState("");
 
   const allThreads = React.useMemo(() => threads(db), [db]);
   const list = React.useMemo(() => {
     const needle = q.trim().toLowerCase();
     return allThreads.filter((t) => {
-      if (channel && t.channel !== channel) return false;
+      if (channels.length && !channels.includes(t.channel)) return false;
       const e = enquiryById(db, t.enquiryId);
       if (filter === "unanswered" && !t.unanswered) return false;
       if (filter === "review" && !t.hasDraft) return false;
@@ -54,7 +56,7 @@ export function InboxWorkspace() {
       }
       return true;
     });
-  }, [allThreads, channel, filter, q, db, user.sub]);
+  }, [allThreads, channels, filter, q, db, user.sub]);
 
   const selected = selectedKey ? allThreads.find((t) => t.key === selectedKey) : undefined;
   const selectedParts = selectedKey?.split(":") ?? [];
@@ -112,10 +114,36 @@ export function InboxWorkspace() {
                   );
                 })}
               </div>
-              <Select value={channel} onChange={(e) => setChannel(e.target.value as "" | Channel)} className="h-8 w-auto shrink-0 px-2 text-xs lg:h-8" aria-label="Channel filter">
-                <option value="">All channels</option>
-                {(["whatsapp", "instagram", "email"] as Channel[]).map((c) => <option key={c} value={c}>{CHANNEL_LABEL[c]}</option>)}
-              </Select>
+            </div>
+            {/* Channels as selectable tag chips — pick one or several to filter the list. */}
+            <div className="scrollbar-thin flex items-center gap-1 overflow-x-auto" role="group" aria-label="Channels">
+              <button
+                type="button"
+                onClick={() => setChannels([])}
+                className={cn("flex h-7 shrink-0 items-center rounded-full px-2.5 text-[11px] font-semibold transition-colors", channels.length === 0 ? "bg-foreground text-background" : "bg-secondary text-muted-foreground hover:bg-brand-100")}
+              >
+                All channels
+              </button>
+              {(["whatsapp", "instagram", "email"] as Channel[]).map((c) => {
+                const on = channels.includes(c);
+                const n = allThreads.filter((t) => t.channel === c).length;
+                return (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => toggleChannel(c)}
+                    aria-pressed={on}
+                    className={cn(
+                      "flex h-7 shrink-0 items-center gap-1 rounded-full border px-2.5 text-[11px] font-semibold transition-colors",
+                      on ? `${CHANNEL_CLASS[c]} border-current` : "border-transparent bg-secondary text-muted-foreground hover:bg-brand-100",
+                    )}
+                  >
+                    {on && <Check className="h-3 w-3" />}
+                    {CHANNEL_LABEL[c]}
+                    <span className={cn("rounded-full px-1 tabular-nums", on ? "bg-white/60" : "bg-card")}>{n}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto">

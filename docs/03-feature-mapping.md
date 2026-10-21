@@ -30,4 +30,9 @@ users/permissions. This table says what each of its features became.
 | AI audit log | AI Agents → Activity feed + Review queue | |
 | Ask the Database | Not ported (out of scope for the demo) | Candidate for phase 2 |
 | Users, permissions, activity log, settings | Team, Activity, Settings | Roles: Admin, Manager, Trip Consultant, Operations, Finance, Viewer |
+| Users → Activity monitor (actions per 10 min, active/inactive timeline) | Team → Activity monitor | Ported from the production tre-crm-tool repo; computed from the activity log in the browser |
+| Linked leads (same person, several numbers) | Linked enquiries — "travel party" | Families/friends messaging separately about one trip |
+| Stage visibility per role (Permissions page) | Team → Roles & permissions → "Who sees which stage" | Hides enquiries inside a column, never the column |
+| Resource links library + link picker in the composer | Templates → Links, "Insert link" in the conversation composer | Review page, visa checklists, policies, inspiration |
+| "Last active" on Users | "Last active" on Team → Members | From the activity log |
 | Keycloak OIDC, Postgres/Prisma, Redis, MinIO, Docker | Demo mode only: cookie session + localStorage store | Production path in 05-architecture |

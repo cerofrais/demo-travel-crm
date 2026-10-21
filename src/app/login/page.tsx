@@ -37,6 +37,13 @@ export default function LoginPage() {
           </div>
         </div>
       </main>
+      <footer className="px-6 pb-6 text-center text-xs text-muted-foreground">
+        Built by{" "}
+        <a href="https://ascent-i-tech.com/#contact" target="_blank" rel="noopener noreferrer" className="font-semibold text-brand-700 underline-offset-2 hover:underline">
+          Ascent-Intelligent-Technologies
+        </a>{" "}
+        · wishtrip CRM demo · {new Date().getFullYear()}
+      </footer>
     </div>
   );
 }

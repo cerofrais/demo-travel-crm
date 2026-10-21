@@ -5,7 +5,8 @@ import { generateSeed } from "./seed";
 
 const STORAGE_KEY = "wishtrip_crm_demo_v1";
 // Bump to force a reseed when the seed shape changes.
-export const SEED_VERSION = 1;
+// v2 — linked enquiries, stage visibility, resource links, staff activity log.
+export const SEED_VERSION = 2;
 
 let cache: DemoData | null = null;
 const listeners = new Set<() => void>();
@@ -62,12 +63,30 @@ export function getDb(): DemoData {
   return load();
 }
 
+/**
+ * Mutate the store via a callback, then persist + notify subscribers.
+ *
+ * The callback edits in place (push/splice/assign) — convenient for callers —
+ * but React memos keyed on `db` or `db.enquiries` would never see a change if
+ * the references stayed the same. So after every mutation the top-level
+ * object and each of its collections get a fresh (shallow) reference; the
+ * records inside are untouched.
+ */
 export function mutateDb(fn: (db: DemoData) => void): DemoData {
   const db = load();
   fn(db);
-  cache = db;
+  cache = freshRefs(db);
   notify();
-  return db;
+  return cache;
+}
+
+function freshRefs(db: DemoData): DemoData {
+  const next = { ...db } as Record<string, unknown>;
+  for (const [k, v] of Object.entries(next)) {
+    if (Array.isArray(v)) next[k] = [...v];
+    else if (v && typeof v === "object") next[k] = { ...(v as object) };
+  }
+  return next as unknown as DemoData;
 }
 
 export function resetDemoData(): void {

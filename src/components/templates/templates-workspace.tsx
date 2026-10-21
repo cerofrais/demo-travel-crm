@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Archive, BadgeCheck, Folder, LayoutTemplate, Plus, Search } from "lucide-react";
+import { Archive, BadgeCheck, Folder, LayoutTemplate, Link as LinkIcon, Plus, Search } from "lucide-react";
 import { PageHeader } from "@/components/app/page-header";
 import { Badge, Button, Card, Input, ScrollableTabs } from "@/components/ui";
 import { ChannelBadge, EmptyState, useToast } from "@/components/shared";
@@ -11,6 +11,9 @@ import { can } from "@/lib/rbac";
 import { cn, formatDate } from "@/lib/utils";
 import type { Channel, MessageTemplate } from "@/lib/demo/types";
 import { TemplateEditor, LANGUAGE_LABEL } from "./template-editor";
+import { LinksLibrary } from "./links-library";
+
+type Mode = "templates" | "links";
 
 const CATEGORY_CLASS: Record<MessageTemplate["category"], string> = {
   marketing: "bg-pink-100 text-pink-700",
@@ -23,6 +26,7 @@ export function TemplatesWorkspace() {
   const me = useCurrentUser();
   const { toast, node } = useToast();
   const canManage = can(me.role, "templates.manage");
+  const [mode, setMode] = React.useState<Mode>("templates");
   const [folder, setFolder] = React.useState<string>("all");
   const [channel, setChannel] = React.useState<Channel | "all">("all");
   const [q, setQ] = React.useState("");
@@ -60,16 +64,35 @@ export function TemplatesWorkspace() {
     </button>
   );
 
+  const ModeButton = ({ k, label, icon }: { k: Mode; label: string; icon: React.ReactNode }) => (
+    <button type="button" onClick={() => setMode(k)} aria-pressed={mode === k} className={cn("flex min-h-[40px] items-center gap-1.5 rounded-md px-3 text-sm font-medium transition-colors", mode === k ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>
+      {icon}
+      {label}
+    </button>
+  );
+
   return (
     <>
-      <PageHeader title="Message templates" subtitle="Approved WhatsApp, Instagram and email templates used by consultants and the auto-reply agent.">
-        {canManage && (
+      <PageHeader
+        title={mode === "links" ? "Link library" : "Message templates"}
+        subtitle={mode === "links" ? "Pages consultants share mid-conversation — review page, visa checklists, policies. Insert them from the composer." : "Approved WhatsApp, Instagram and email templates used by consultants and the auto-reply agent."}
+      >
+        <div className="flex items-center gap-1 rounded-lg bg-secondary p-1">
+          <ModeButton k="templates" label="Templates" icon={<LayoutTemplate className="h-4 w-4" />} />
+          <ModeButton k="links" label="Links" icon={<LinkIcon className="h-4 w-4" />} />
+        </div>
+        {canManage && mode === "templates" && (
           <Button onClick={() => openEditor(null)}>
             <Plus className="h-4 w-4" /> New template
           </Button>
         )}
       </PageHeader>
-      <div className="flex flex-col gap-4 p-4 md:flex-row md:gap-6 md:p-6">
+      {mode === "links" && (
+        <div className="p-4 md:p-6">
+          <LinksLibrary db={db} me={me} canManage={canManage} onToast={toast} />
+        </div>
+      )}
+      <div className={cn("flex flex-col gap-4 p-4 md:flex-row md:gap-6 md:p-6", mode !== "templates" && "hidden")}>
         <aside className="md:w-56 md:shrink-0">
           <div className="flex gap-1 overflow-x-auto pb-1 md:flex-col md:overflow-visible md:pb-0">
             <FolderButton k="all" label="All" count={db.templates.filter((t) => !t.archived).length} icon={<LayoutTemplate className="h-4 w-4" />} />

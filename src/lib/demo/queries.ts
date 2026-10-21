@@ -62,11 +62,24 @@ export function threads(db: DemoData): Thread[] {
   return out.sort((a, b) => b.last.at.localeCompare(a.last.at));
 }
 
-/** Enquiries visible to a user given role scoping (Sales sees own + unassigned). */
-export function visibleEnquiries(db: DemoData, user: { sub: string; role: string }): Enquiry[] {
-  if (user.role === "SALES") return db.enquiries.filter((e) => !e.assignedTo || e.assignedTo === user.sub);
-  return db.enquiries;
+/** Whether a role may see the enquiries in a stage (Team → Roles & permissions). */
+export function canSeeStage(db: DemoData, role: string, stage: Enquiry["stage"]): boolean {
+  if (role === "ADMIN") return true;
+  const allowed = db.settings.stageVisibility?.[stage];
+  return !allowed || allowed.includes(role as never);
 }
+
+/** Enquiries visible to a user: role scoping (Sales sees own + unassigned)
+ *  plus the per-role stage visibility setting. */
+export function visibleEnquiries(db: DemoData, user: { sub: string; role: string }): Enquiry[] {
+  const byStage = db.enquiries.filter((e) => canSeeStage(db, user.role, e.stage));
+  if (user.role === "SALES") return byStage.filter((e) => !e.assignedTo || e.assignedTo === user.sub);
+  return byStage;
+}
+
+/** Other enquiries in the same travel party. */
+export const linkedEnquiries = (db: DemoData, enquiry: Enquiry): Enquiry[] =>
+  enquiry.linkGroupId ? db.enquiries.filter((e) => e.linkGroupId === enquiry.linkGroupId && e.id !== enquiry.id) : [];
 
 export function logActivity(db: DemoData, a: Omit<DemoData["activities"][number], "id" | "at"> & { at?: string }) {
   db.activities.unshift({ id: `act_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`, at: a.at ?? new Date().toISOString(), ...a });

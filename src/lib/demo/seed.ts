@@ -22,7 +22,7 @@ import type {
   Comfort,
   Pace,
 } from "./types";
-import { AUTO_REPLY_RULES, DEMO_USERS, DESTINATIONS, PACKAGES, SETTINGS, SUPPLIERS, TAGS, TEMPLATES } from "./seed-static";
+import { AUTO_REPLY_RULES, DEMO_USERS, DESTINATIONS, PACKAGES, RESOURCE_LINKS, SETTINGS, SUPPLIERS, TAGS, TEMPLATES } from "./seed-static";
 import { generateItinerary } from "@/lib/ai/itinerary";
 import { scoreEnquiry } from "@/lib/ai/scoring";
 
@@ -202,7 +202,8 @@ export function generateSeed(): DemoData {
   const activities: Activity[] = [];
 
   const act = (at: Date | string, actorKind: Activity["actorKind"], actor: string, type: string, text: string, refs: Partial<Pick<Activity, "enquiryId" | "tripId" | "travellerId">> = {}) => {
-    activities.push({ id: id("act"), at: typeof at === "string" ? at : iso(at), actor, actorKind, type, text, ...refs });
+    const actorSub = actorKind === "user" ? DEMO_USERS.find((u) => u.name === actor)?.sub : undefined;
+    activities.push({ id: id("act"), at: typeof at === "string" ? at : iso(at), actor, actorSub, actorKind, type, text, ...refs });
   };
   const evt = (e: Omit<AgentEvent, "id">) => agentEvents.push({ id: id("evt"), ...e });
 
@@ -760,6 +761,61 @@ export function generateSeed(): DemoData {
     evt({ agent: "assignment", at: iso(daysAgo(between(0, 5), between(8, 21))), enquiryId: e.id, travellerId: e.travellerId, action: "Auto-assigned consultant", detail: `${e.destination} enquiry → ${userName(e.assignedTo!)} (destination specialist, ${between(3, 9)} open leads)`, confidence: 1, status: "auto" });
   }
 
+  // ----- a travel party that enquired separately (linked enquiries) -----
+  {
+    const group = enquiries.filter((x) => x.destinationId === "goa" && ["qualified", "itinerary_sent", "contacted"].includes(x.stage)).slice(0, 3);
+    if (group.length >= 2) {
+      const gid = id("lgrp");
+      for (const e of group) {
+        e.linkGroupId = gid;
+        if (!e.tags.includes("travel-party")) e.tags.push("travel-party");
+      }
+      act(daysAgo(1, 11), "user", "Priya Nair", "enquiries_linked", `Linked ${group.map((x) => x.ref).join(", ")} — same travel party (friends trip to Goa)`, { enquiryId: group[0].id });
+    }
+  }
+
+  // ----- staff activity log for the team activity monitor (last 7 days) -----
+  {
+    const staff = DEMO_USERS.filter((u) => u.role !== "VIEWER");
+    const KINDS: [string, string][] = [
+      ["note", "Added a remark"],
+      ["stage_change", "Moved an enquiry to the next stage"],
+      ["message_sent", "Replied on WhatsApp"],
+      ["message_sent", "Replied on Instagram"],
+      ["call", "Called a traveller"],
+      ["task_done", "Completed a follow-up task"],
+      ["itinerary_sent", "Sent an itinerary"],
+      ["doc_upload", "Uploaded a document"],
+      ["payment_recorded", "Recorded a payment"],
+      ["assign", "Reassigned an enquiry"],
+    ];
+    for (let dayOff = 6; dayOff >= 0; dayOff--) {
+      const base = daysAgo(dayOff, 0, 0);
+      base.setHours(0, 0, 0, 0);
+      const isWeekend = [0, 6].includes(base.getDay());
+      for (const u of staff) {
+        // Each person has a shift and a couple of breaks; weekends are quiet.
+        const start = u.role === "OPS" ? 8.5 : u.role === "FINANCE" ? 10 : 9 + rand();
+        const end = u.role === "FINANCE" ? 18 : 19.5 + rand();
+        const intensity = (u.role === "SALES" ? 1 : u.role === "MANAGER" ? 0.7 : u.role === "ADMIN" ? 0.4 : 0.6) * (isWeekend ? 0.25 : 1) * (dayOff === 0 ? 1 : 1);
+        const lunch = 13 + rand();
+        for (let h = start; h < end; h += 1 / 6) {
+          const nowH = (NOW.getTime() - base.getTime()) / 3600000;
+          if (dayOff === 0 && h > nowH) break;
+          if (h > lunch && h < lunch + 0.8) continue;
+          if (chance(0.12)) continue; // short gaps
+          const n = chance(intensity * 0.9) ? between(1, Math.max(1, Math.round(intensity * 4))) : 0;
+          for (let k = 0; k < n; k++) {
+            const [type, text] = pick(KINDS);
+            const e = pick(enquiries);
+            const at = new Date(base.getTime() + h * 3600000 + between(0, 9) * 60000);
+            activities.push({ id: id("act"), at: iso(at), actor: u.name, actorSub: u.sub, actorKind: "user", type, text: `${text} — ${travellers.find((t) => t.id === e.travellerId)?.fullName.split(" ")[0] ?? ""} · ${e.ref}`, enquiryId: e.id, travellerId: e.travellerId });
+          }
+        }
+      }
+    }
+  }
+
   // Sort everything newest-first where it matters.
   messages.sort((a, b) => a.at.localeCompare(b.at));
   activities.sort((a, b) => b.at.localeCompare(a.at));
@@ -789,6 +845,7 @@ export function generateSeed(): DemoData {
     reviews,
     referrals,
     activities,
+    resourceLinks: RESOURCE_LINKS,
     tags: TAGS,
     settings: SETTINGS,
   };

@@ -1,5 +1,6 @@
 import type {
   AutoReplyRule,
+  ResourceLink,
   Destination,
   ItineraryDay,
   MessageTemplate,
@@ -257,6 +258,19 @@ export const AUTO_REPLY_RULES: AutoReplyRule[] = [
   { id: "rule_discount", name: "Discount request → draft for consultant", channels: ["whatsapp", "instagram"], trigger: "intent", keywords: ["discount", "cheaper", "best price", "offer", "negotiate"], intent: "discount", response: "Let me check what we can do on the stays for your dates — give me a little while and I'll come back with options.", mode: "draft", tagOnMatch: "discount-asked", hits: 52, active: true, updatedAt: T0 },
 ];
 
+export const RESOURCE_LINKS: ResourceLink[] = [
+  { id: "lnk_review", name: "Google review page", url: "https://g.page/r/wishtrip/review", description: "Send after a 4–5★ rating", folder: "Post trip", usageCount: 38, archived: false, createdAt: T0 },
+  { id: "lnk_visa_japan", name: "Japan visa checklist", url: "https://wishtrip.co/guides/japan-visa", description: "Documents, fees, VFS appointment steps", folder: "Visa & docs", usageCount: 21, archived: false, createdAt: T0 },
+  { id: "lnk_visa_vietnam", name: "Vietnam e-visa how-to", url: "https://wishtrip.co/guides/vietnam-evisa", description: "Apply online in 10 minutes", folder: "Visa & docs", usageCount: 14, archived: false, createdAt: T0 },
+  { id: "lnk_packing", name: "Packing list — beach trips", url: "https://wishtrip.co/guides/packing-beach", folder: "Pre-departure", usageCount: 27, archived: false, createdAt: T0 },
+  { id: "lnk_insurance", name: "Travel insurance — what's covered", url: "https://wishtrip.co/guides/insurance", folder: "Pre-departure", usageCount: 9, archived: false, createdAt: T0 },
+  { id: "lnk_cancel", name: "Cancellation & refund policy", url: "https://wishtrip.co/cancellation-refunds", folder: "Policies", usageCount: 12, archived: false, createdAt: T0 },
+  { id: "lnk_terms", name: "Terms of use", url: "https://wishtrip.co/terms", folder: "Policies", usageCount: 4, archived: false, createdAt: T0 },
+  { id: "lnk_instagram", name: "Instagram — latest trips", url: "https://www.instagram.com/wishtrip.ai", description: "For inspiration while they decide", folder: "Inspiration", usageCount: 31, archived: false, createdAt: T0 },
+  { id: "lnk_planner", name: "Build your own plan (website)", url: "https://wishtrip.co/plan", folder: "Inspiration", usageCount: 44, archived: false, createdAt: T0 },
+  { id: "lnk_old_offer", name: "Monsoon offer 2026 (expired)", url: "https://wishtrip.co/offers/monsoon-2026", folder: "Inspiration", usageCount: 18, archived: true, createdAt: T0 },
+];
+
 export const TAGS: Tag[] = [
   { name: "ig-plan", category: "campaign", color: "pink" },
   { name: "diwali-2026", category: "campaign", color: "pink" },
@@ -304,6 +318,16 @@ export const SETTINGS: Settings = {
     ],
   },
   sla: { firstResponseMin: 10, itineraryHours: 4, followUpCadenceDays: [1, 3, 7] },
+  // Finance only needs money stages; Ops only needs booked trips. Everyone
+  // else sees the whole board. Editable on Team → Roles & permissions.
+  stageVisibility: {
+    new: ["ADMIN", "MANAGER", "SALES", "VIEWER"],
+    contacted: ["ADMIN", "MANAGER", "SALES", "VIEWER"],
+    qualified: ["ADMIN", "MANAGER", "SALES", "VIEWER"],
+    itinerary_sent: ["ADMIN", "MANAGER", "SALES", "VIEWER"],
+    negotiation: ["ADMIN", "MANAGER", "SALES", "VIEWER"],
+    non_lead: ["ADMIN", "MANAGER"],
+  },
   agents: {
     voice: {
       enabled: true,

@@ -33,6 +33,19 @@ Manager (Priya), Trip Consultant (Rohan), Operations (Meera), Finance
 
 ## Changelog
 
+**2026-10-22 — v0.2**
+- Inbox: channels are selectable chips above the thread list (multi-select,
+  with counts) instead of a dropdown.
+- Ported from the production wellness CRM (Ascent-Intelligent-Technologies/
+  tre-crm-tool): Team → Activity monitor (actions per 10 minutes, active /
+  inactive timeline, per-person comparison, summary table), linked enquiries
+  ("travel party"), per-role stage visibility, resource link library with an
+  "Insert link" picker in the composer, "Last active" on Team members.
+- Seed v2: staff activity log for the last 7 days, a seeded travel party,
+  10 resource links; `SEED_VERSION` bumped so existing browsers reseed.
+- "Built by Ascent-Intelligent-Technologies" footer on the app shell and the
+  login page.
+
 **2026-10-22 — v0.1 (first push)**
 - Research: wishtrip.co + @wishtrip.ai (docs/01), travel-agency CRM domain
   (docs/02), feature mapping from the wellness CRM (docs/03).
