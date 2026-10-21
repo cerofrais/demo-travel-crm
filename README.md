@@ -83,6 +83,8 @@ footer reseeds.
 4. [Pipeline, roles and workflows](docs/04-pipeline-and-workflows.md).
 5. [AI agents](docs/05-ai-agents.md).
 6. [Architecture & production path](docs/06-architecture.md).
+7. [Demo script](docs/07-demo-script.md) — a 15-minute walkthrough for the wishtrip pitch.
+8. [Deploy notes & changelog](docs/08-deploy-and-changelog.md).
 
 ## Scripts
 
