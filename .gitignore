@@ -1,0 +1,36 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# next.js
+/.next/
+/out/
+next-env.d.ts
+
+# production
+/build
+
+# env & secrets
+.env
+.env*.local
+!.env.example
+
+# logs
+*.log
+npm-debug.log*
+
+# os / editor
+.DS_Store
+*.pem
+.vscode/*
+.idea
+
+# misc
+/coverage
+/test-results
+tsconfig.tsbuildinfo
+.vercel
+
+# local agent/editor scratch
+.claude/

@@ -1,0 +1,118 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * wishtrip semantic theme tokens (HSL triplets).
+ * Light: sand surfaces (#fbf8f2), ink text (#16211e), teal primary (#0e5e52),
+ * clay accent (#e8663d). Dark: pine surfaces.
+ */
+@layer base {
+  :root {
+    --background: 40 53% 97%; /* sand-50 #fbf8f2 */
+    --foreground: 164 20% 11%; /* ink-900 #16211e */
+
+    --card: 0 0% 100%;
+    --card-foreground: 164 20% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 164 20% 11%;
+
+    --primary: 171 74% 21%; /* teal-700 #0e5e52 */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 40 43% 93%; /* sand-100 #f4eee4 */
+    --secondary-foreground: 171 74% 18%;
+
+    --muted: 40 40% 94%;
+    --muted-foreground: 155 6% 37%; /* ink-600 */
+
+    --accent: 162 32% 86%; /* teal-100 tint */
+    --accent-foreground: 171 74% 18%;
+
+    --destructive: 12 63% 46%; /* #c0492b */
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 38 33% 87%; /* #e9e1d4 */
+    --input: 38 33% 87%;
+    --ring: 168 72% 28%;
+
+    /* App sidebar: pine rail */
+    --sidebar: 160 21% 9%; /* pine-900 #131d1a */
+    --sidebar-foreground: 150 14% 84%;
+    --sidebar-accent: 171 74% 21%;
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 160 21% 7%;
+    --foreground: 150 14% 92%;
+    --card: 160 18% 10%;
+    --card-foreground: 150 14% 92%;
+    --popover: 160 18% 10%;
+    --popover-foreground: 150 14% 92%;
+    --primary: 165 45% 55%;
+    --primary-foreground: 160 21% 7%;
+    --secondary: 160 14% 15%;
+    --secondary-foreground: 150 14% 92%;
+    --muted: 160 12% 17%;
+    --muted-foreground: 150 8% 64%;
+    --accent: 165 20% 22%;
+    --accent-foreground: 150 14% 92%;
+    --destructive: 12 60% 52%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 160 12% 20%;
+    --input: 160 12% 20%;
+    --ring: 165 45% 55%;
+    --sidebar: 160 21% 6%;
+    --sidebar-foreground: 150 14% 84%;
+    --sidebar-accent: 165 45% 40%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) hsl(var(--muted));
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    height: 10px;
+    width: 10px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+    border-radius: 9999px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 9999px;
+    border: 2px solid hsl(var(--muted));
+  }
+  .scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@layer utilities {
+  .pt-safe { padding-top: env(safe-area-inset-top); }
+  .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+  .pl-safe { padding-left: env(safe-area-inset-left); }
+  .pr-safe { padding-right: env(safe-area-inset-right); }
+}
+
+@media print {
+  .no-print { display: none !important; }
+  [data-scroll-container] { overflow: visible !important; height: auto !important; }
+}
